@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pemesanan Hotel</title>
+    <!-- Include xlsx library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 1em 0;
+            overflow: hidden;
+        }
+
+        .red-text {
+            color: red;
+            font-size: 2em;
+            white-space: nowrap;
+            display: inline-block;
+            animation: slide 10s linear infinite;
+        }
+
+        @keyframes slide {
+            0% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        main {
+            max-width: 600px;
+            margin: 2em auto;
+            padding: 2em;
+            background-color: #ddd;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            color: #000;
+            position: relative;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #bbb, #ddd);
+            padding: 2em;
+            border-radius: 8px;
+            color: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes morph {
+            0%, 100% {
+                clip-path: circle(0% at 50% 50%);
+            }
+            25% {
+                clip-path: circle(20% at 50% 50%);
+            }
+            50% {
+                clip-path: circle(30% at 50% 50%);
+            }
+            75% {
+                clip-path: circle(20% at 50% 50%);
+            }
+        }
+
+        .animation-circle {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background-color: #00f;
+            border-radius: 50%;
+            top: -50px;
+            left: -50px;
+            animation: morph 5s infinite;
+        }
+
+        .animation-circle::before {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #fff;
+            border-radius: 50%;
+            top: 25%;
+            left: 25%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        label {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+
+        input, select, button {
+            padding: 0.5em;
+            font-size: 1em;
+            margin-bottom: 1em;
+        }
+
+        button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        .availability {
+            margin-top: 1em;
+            padding: 1em;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            color: #000;
+        }
+
+        .receipt {
+            margin-top: 2em;
+            padding: 1em;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            text-align: center;
+            color: #000;
+        }
+
+        .service-number {
+            margin-top: 1em;
+            text-align: center;
+            font-size: 1em;
+            color: #000;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .payment-info {
+            margin-top: 1em;
+            padding: 1em;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            color: #000;
+        }
+
+        .warning {
+            color: red;
+            font-weight: bold;
+            margin-top: 1em;
+        }
+
+        .smiley {
+            font-size: 2em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 class="red-text">Pemesanan Kamar Hotel Rinjani</h1>
+    </header>
+    <main id="main-content">
+        <div id="login-selection">
+            <button id="user-login-btn">User Login</button>
+            <button id="admin-login-btn">Admin Login</button>
+        </div>
+        <form id="user-login-form" class="hidden">
+            <div class="animation-circle"></div>
+            <label for="user-email">Email:</label>
+            <input type="email" id="user-email" name="user-email" required>
+            <button type="submit">Login</button>
+        </form>
+        <form id="admin-login-form" class="hidden">
+            <div class="animation-circle"></div>
+            <label for="admin-code">Kode Admin:</label>
+            <input type="password" id="admin-code" required>
+            <button type="submit">Login</button>
+        </form>
+        <form id="booking-form" class="hidden">
+            <div class="animation-circle"></div>
+
+            <label for="name">Nama:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="phone">Nomor HP:</label>
+            <input type="tel" id="phone" name="phone" required>
+
+            <label for="checkin">Tanggal Check-in:</label>
+            <input type="date" id="checkin" name="checkin" required>
+
+            <label for="checkout">Tanggal Check-out:</label>
+            <input type="date" id="checkout" name="checkout" required>
+
+            <label for="room-type">Tipe Kamar:</label>
+            <select id="room-type" name="room-type" required>
+                <option value="single">Single - 200k/malam</option>
+                <option value="double">Double - 400k/malam</option>
+                <option value="suite">Suite - 500k/malam</option>
+            </select>
+
+            <label for="payment-method">Metode Pembayaran:</label>
+            <select id="payment-method" name="payment-method" required>
+                <option value="bayar_di_hotel">Bayar di Hotel</option>
+                <option value="dana">Dana</option>
+                <option value="ovo">OVO</option>
+                <option value="bni">BNI</option>
+                <option value="bri">BRI</option>
+                <option value="bca">BCA</option>
+                <option value="mandiri">Mandiri</option>
+            </select>
+
+            <div id="availability" class="availability">
+                <h3>Ketersediaan Kamar</h3>
+                <p id="single-availability">Single: <span id="single-rooms">5</span> kamar tersedia</p>
+                <p id="double-availability">Double: <span id="double-rooms">3</span> kamar tersedia</p>
+                <p id="suite-availability">Suite: <span id="suite-rooms">2</span> kamar tersedia</p>
+            </div>
+
+            <button type="submit">Pesan Sekarang</button>
+
+            <div class="service-number">
+                Nomor Servis: 087735351661
+            </div>
+        </form>
+        <div id="confirmation-message" class="hidden">
+            <h2>Bukti Pemesanan</h2>
+            <div class="receipt">
+                <p>Terima kasih atas pemesanan Anda!</p>
+                <p id="booking-details"></p>
+                <div class="smiley">&#128522;</div>
+            </div>
+            <div class="service-number">
+                Nomor Servis: 087735351661
+            </div>
+            <button id="back-to-form">Kembali ke Formulir</button>
+        </div>
+        <div id="admin-section" class="hidden">
+            <button id="download-excel">Download Excel</button>
+        </div>
+        <div id="payment-info" class="payment-info hidden">
+            <h3>Informasi Pembayaran</h3>
+            <p>Silakan lakukan pembayaran ke salah satu rekening berikut:</p>
+            <ul>
+                <li>Dana: 081234567890</li>
+                <li>OVO: 081234567890</li>
+                <li>BNI: 1234567890</li>
+                <li>BRI: 0987654321</li>
+                <li>BCA: 1122334455</li>
+                <li>Mandiri: 5566778899</li>
+            </ul>
+            <p>Jumlah yang harus dibayar akan diberitahukan pada saat check-in.</p>
+        </div>
+    </main>
+
+    <script>
+        const ADMIN_CODE = "qwerty123";
+        let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+        const MAX_BOOKINGS_PER_FILE = 100;
+        const roomAvailability = {
+            single: 5,
+            double: 3,
+            suite: 2
+        };
+
+        const roomPrices = {
+            single: 200000,
+            double: 400000,
+            suite: 500000
+        };
+
+        // Update room availability based on stored bookings
+        bookings.forEach(booking => {
+            roomAvailability[booking.roomType] -= 1;
+        });
+
+        document.getElementById('user-login-btn').addEventListener('click', function () {
+            document.getElementById('login-selection').classList.add('hidden');
+            document.getElementById('user-login-form').classList.remove('hidden');
+        });
+
+        document.getElementById('admin-login-btn').addEventListener('click', function () {
+            document.getElementById('login-selection').classList.add('hidden');
+            document.getElementById('admin-login-form').classList.remove('hidden');
+        });
+
+        document.getElementById('user-login-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const userEmail = document.getElementById('user-email').value;
+            document.getElementById('user-login-form').classList.add('hidden');
+            document.getElementById('booking-form').classList.remove('hidden');
+        });
+
+        document.getElementById('admin-login-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const adminCode = document.getElementById('admin-code').value;
+            if (adminCode === ADMIN_CODE) {
+                document.getElementById('admin-login-form').classList.add('hidden');
+                document.getElementById('admin-section').classList.remove('hidden');
+            } else {
+                alert('Kode Admin salah.');
+            }
+        });
+
+        document.getElementById('booking-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const checkin = document.getElementById('checkin').value;
+            const checkout = document.getElementById('checkout').value;
+            const roomType = document.getElementById('room-type').value;
+            const paymentMethod = document.getElementById('payment-method').value;
+
+            const checkinDate = new Date(checkin);
+            const checkoutDate = new Date(checkout);
+            const nights = (checkoutDate - checkinDate) / (1000 * 60 * 60 * 24);
+
+            const totalPrice = nights * roomPrices[roomType];
+
+            const booking = {
+                name,
+                email,
+                phone,
+                checkin,
+                checkout,
+                roomType,
+                paymentMethod,
+                totalPrice
+            };
+
+            bookings.push(booking);
+            localStorage.setItem('bookings', JSON.stringify(bookings));
+            roomAvailability[roomType] -= 1;
+
+            updateRoomAvailability();
+            showConfirmationMessage(booking);
+
+            if (bookings.length >= MAX_BOOKINGS_PER_FILE) {
+                saveBookingsToExcel();
+                bookings = [];
+                localStorage.setItem('bookings', JSON.stringify(bookings));
+            }
+        });
+
+        function updateRoomAvailability() {
+            document.getElementById('single-rooms').textContent = roomAvailability.single;
+            document.getElementById('double-rooms').textContent = roomAvailability.double;
+            document.getElementById('suite-rooms').textContent = roomAvailability.suite;
+        }
+
+        function showConfirmationMessage(booking) {
+            document.getElementById('booking-form').classList.add('hidden');
+            const bookingDetails = `Nama: ${booking.name}, Email: ${booking.email}, Nomor HP: ${booking.phone}, Check-in: ${booking.checkin}, Check-out: ${booking.checkout}, Tipe Kamar: ${booking.roomType}, Metode Pembayaran: ${booking.paymentMethod}, Total Harga: Rp ${booking.totalPrice}`;
+            document.getElementById('booking-details').textContent = bookingDetails;
+            document.getElementById('confirmation-message').classList.remove('hidden');
+            document.getElementById('payment-info').classList.remove('hidden');
+        }
+
+        document.getElementById('back-to-form').addEventListener('click', function () {
+            document.getElementById('confirmation-message').classList.add('hidden');
+            document.getElementById('booking-form').classList.remove('hidden');
+        });
+
+        document.getElementById('download-excel').addEventListener('click', saveBookingsToExcel);
+
+        function saveBookingsToExcel() {
+            const ws = XLSX.utils.json_to_sheet(bookings);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Bookings');
+            XLSX.writeFile(wb, `pemesanan_hotel_${Date.now()}.xlsx`);
+        }
+
+        updateRoomAvailability();
+    </script>
+</body>
+</html>
